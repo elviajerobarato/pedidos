@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PresuLab v2.5 - Estilos Estructurados Industriales
  * Optimización para entornos de gestión ERP, operaciones de taller y lectura técnica.
  */
@@ -69,6 +69,11 @@ pre {
 pre code {
     font-family: ui-monospace, monospace;
     line-height: 1.5;
+}
+
+/* Evita que los iconos/textos internos interfieran con los eventos dragover/dragleave */
+#dropZone * {
+    pointer-events: none;
 }
 
 .animate-spin {

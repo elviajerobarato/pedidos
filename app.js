@@ -187,7 +187,7 @@ async function handleFormSubmitAI(e) {
     systemPrompt += `2. Analiza las dimensiones (Cotas de corte Alto y Ancho):\n`;
     systemPrompt += `   - Si las dimensiones vienen implícitas en centímetros (por ejemplo, números menores de 500 como 82.5, 70, 90, 120), conviértelas SIEMPRE a milímetros (mm) multiplicando por 10.\n`;
     systemPrompt += `   - Si el cliente escribe explícitamente "mm" o el valor es superior a 500, mantén el número entero sin multiplicar.\n`;
-    systemPrompt += `   - El campo "alto" corresponde invariablemente a la primera cota del par y el "ancho" a la segunda.\n`;
+    systemPrompt += `   - El campo "alto" corresponds invariablemente a la primera cota del par y el "ancho" a la segunda.\n`;
     systemPrompt += `3. Aísla de forma quirúrgica la descripción del material limpio ("description"). Elimina las cantidades y las medidas del texto final para evitar duplicidades (Ej: "4/6/4", "4/6/4 Carglas", "4/12/3+3").\n`;
     systemPrompt += `4. Redacta notas técnicas concisas en el campo "observations" (Ej: Si detectas que incluye la palabra 'Carglas' indica "Especifica fabricante 'Carglas'"; si el material incluye un '+' o la palabra 'laminado', añade "Vidrio laminado en una de sus caras (formato: vidrio/cámara/vidrio)").\n\n`;
     systemPrompt += `Devuelve ÚNICAMENTE un array JSON válido con la estructura abajo indicada. No incluyas explicaciones, saludos ni bloques de código markdown tipo \`\`\`json. Solo el texto del array.\n\n`;
@@ -337,7 +337,7 @@ function generateSqlServerScript() {
     sql += `-- Fecha de Ejecución: ${dateISO}\n`;
     sql += `-- ==========================================================\n\n`;
     sql += `IF OBJECT_ID('dbo.PedidoLineas', 'U') IS NOT NULL DROP TABLE dbo.PedidoLineas;\n`;
-    sql += `IF OBJECT_ID('dbo.PedidosCabecera', 'U') IS NOT NULL DROP TABLE dbo.PedidosCabecera;\n\\n`;
+    sql += `IF OBJECT_ID('dbo.PedidosCabecera', 'U') IS NOT NULL DROP TABLE dbo.PedidosCabecera;\n\n`;
     sql += `CREATE TABLE dbo.PedidosCabecera (\n`;
     sql += `    PedidoID INT IDENTITY(1,1) PRIMARY KEY,\n`;
     sql += `    ClienteNombre VARCHAR(255) NOT NULL,\n`;
