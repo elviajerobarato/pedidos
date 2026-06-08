@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -43,10 +43,11 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label font-semibold text-xs">Modelo Operacional</label>
-                        <select id="modelInput" class="form-select">
-                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado/Veloz)</option>
-                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Análisis Complejo)</option>
+                        <label class="form-label font-semibold text-xs">Modelo / Model ID</label>
+                        <select id="modelInput" class="form-select form-select-sm font-mono">
+                            <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Recomendado - Alta Velocidad)</option>
+                            <option value="gemini-1.5-flash">gemini-1.5-flash (Alternativo - Muy Estable)</option>
+                            <option value="gemini-2.5-pro">gemini-2.5-pro (Alta Precisión - Sujeto a Cuota 429)</option>
                         </select>
                     </div>
                 </div>
