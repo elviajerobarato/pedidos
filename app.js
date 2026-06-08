@@ -1,9 +1,4 @@
-﻿Aquí tienes el código completo y definitivo para tu archivo **`app.js`**.
-
-Esta versión unifica todas las mejoras: es **completamente universal** (funciona sin cambios en local, GitHub Pages o cualquier otro servidor web), incluye la inmunidad frente a falsos positivos por vocabulario de taller (`safetySettings`) y, lo más importante, **aplica el blindaje estructural completo en el Sandbox** para que nunca más vuelva a saltar el error `Cannot read properties of undefined`. Si algo falla, la interfaz te dirá exactamente el motivo o el código de error HTTP de la API de Google.
-
-```javascript
-/**
+﻿/**
  * PresuLab v2.5 - Motor de Ingesta Asistido por Inteligencia Artificial (Gemini API Pipeline)
  * Versión Universal Multi-Entorno (Local, GitHub Pages y Servidores Web)
  * Con blindaje perimetral avanzado y control de errores estructurales en Ingesta y Sandbox.
@@ -500,5 +495,3 @@ function clearApiKey() {
     if (input) input.value = '';
     alert('Persistencia de credenciales locales eliminada con éxito.');
 }
-
-```
