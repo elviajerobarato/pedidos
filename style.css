@@ -1,0 +1,81 @@
+/**
+ * PresuLab v2.5 - Estilos Estructurados Industriales
+ * Optimización para entornos de gestión ERP, operaciones de taller y lectura técnica.
+ */
+
+:root {
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --blue-50: #eff6ff;
+    --blue-500: #3b82f6;
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --emerald-50: #ecfdf5;
+    --emerald-400: #34d399;
+    --emerald-700: #047857;
+    --amber-50: #fffbeb;
+    --amber-600: #d97706;
+}
+
+body {
+    background-color: var(--slate-50) !important;
+    color: var(--slate-800);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.card {
+    border: 1px solid var(--slate-200) !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    background-color: #ffffff;
+}
+
+.td-centered {
+    text-align: center;
+}
+
+.text-slate-700 { color: var(--slate-700); }
+.text-slate-800 { color: var(--slate-800); }
+.text-blue-500 { color: var(--blue-500); }
+.text-blue-600 { color: var(--blue-600); }
+.text-blue-700 { color: var(--blue-700); }
+.text-yellow-600 { color: var(--amber-600); }
+.text-cyan-600 { color: #0891b2; }
+.text-emerald-400 { color: var(--emerald-400); }
+
+.bg-blue-50 { background-color: var(--blue-50) !important; }
+.bg-emerald-50 { background-color: var(--emerald-50) !important; }
+.bg-slate-100 { background-color: var(--slate-100) !important; }
+
+.font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+.text-xs { font-size: 0.75rem !important; }
+.text-sm { font-size: 0.875rem !important; }
+
+pre {
+    border: 1px solid var(--slate-800);
+    background-color: var(--slate-900) !important;
+    border-radius: 4px;
+}
+
+pre code {
+    font-family: ui-monospace, monospace;
+    line-height: 1.5;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

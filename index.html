@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PresuLab v2.5 · Entorno de Optimización</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #dropZone {
+            border-style: dashed !important;
+            border-width: 2px !important;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        #dropZone.drop-zone-active {
+            background-color: #e3f2fd !important;
+            border-color: #0d6efd !important;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark shadow-sm mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1"><i class="bi bi-cpu-fill text-blue-500"></i> PresuLab <span class="badge bg-primary text-xs">v2.5 AI Pipeline</span></span>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card p-4 mb-4">
+                    <h5 class="card-title mb-3 fw-bold text-slate-800">1. Configuración de Credenciales</h5>
+                    <div class="mb-3">
+                        <label class="form-label font-semibold text-xs">Gemini API Key</label>
+                        <div class="input-group">
+                            <input type="password" id="apiKeyInput" class="form-control" placeholder="AIzaSy...">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleKeyBtn"><i class="bi bi-eye"></i></button>
+                            <button class="btn btn-outline-danger" type="button" id="clearKeyBtn"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label font-semibold text-xs">Modelo Operacional</label>
+                        <select id="modelInput" class="form-select">
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recomendado/Veloz)</option>
+                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Análisis Complejo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="card-title mb-3 fw-bold text-slate-800">2. Ingesta de Pedido Automatizada</h5>
+                    <form id="importForm">
+                        <div class="mb-3">
+                            <label class="form-label font-semibold text-xs">Nombre del Archivo / Cliente</label>
+                            <input type="text" id="clientName" class="form-control" placeholder="ejemplo_importacion01.txt">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label font-semibold text-xs">Valoración Material Base (€/m²)</label>
+                            <input type="number" id="materialRate" class="form-control" value="45.00" step="0.01">
+                        </div>
+                        
+                        <!-- Zona de arrastre optimizada y corregida (Input fuera del div) -->
+                        <div id="dropZone" class="mb-3 p-4 bg-light border border-2 rounded text-center">
+                            <i class="bi bi-cloud-arrow-up-fill text-primary fs-1 mb-2 d-block"></i>
+                            <span class="fw-bold text-xs d-block mb-1 text-slate-700">Arrastra aquí tu pedido o haz clic para examinar</span>
+                            <span class="text-muted d-block" style="font-size: 0.72rem;">Formatos aceptados: .pdf, .docx, .txt</span>
+                        </div>
+                        <input type="file" id="filePicker" class="d-none" accept=".pdf,.doc,.docx,.txt">
+
+                        <div class="mb-3">
+                            <label class="form-label font-semibold text-xs">Contenido del Pedido (Texto Extraído o Libre)</label>
+                            <textarea id="rawText" class="form-control font-mono text-sm" rows="5" placeholder="El texto extraído del archivo aparecerá aquí, o puedes escribirlo manualmente..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary fw-bold" id="submitBtn"><i class="bi bi-lightning-charge-fill"></i> Procesar mediante IA</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="loadDemoDataBtn">Cargar Datos de Taller</button>
+                        </div>
+                    </form>
+                    <div id="aiStatus" class="mt-3 text-center"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div id="summaryPanel" class="card p-3 mb-4 d-none bg-white">
+                    <div class="row text-center">
+                        <div class="col-md-3 border-end"><h6>Documento Activo</h6><span id="summaryClient" class="fw-bold text-primary">-</span></div>
+                        <div class="col-md-3 border-end"><h6>Líneas Totales</h6><span id="summaryLines" class="fw-bold fs-5">-</span></div>
+                        <div class="col-md-3 border-end"><h6>Superficie Total</h6><span id="summarySurface" class="fw-bold fs-5 text-success">-</span></div>
+                        <div class="col-md-3"><h6>Valoración Total</h6><span id="summaryPrice" class="fw-bold fs-5 text-danger">-</span></div>
+                    </div>
+                </div>
+
+                <ul class="nav nav-tabs card-header-tabs bg-white border rounded-top px-2" id="modulosTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="std-tab" data-bs-toggle="tab" data-bs-target="#panelStandard" type="button" role="tab">1. Listado Estándar</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="val-tab" data-bs-toggle="tab" data-bs-target="#panelValuation" type="button" role="tab">2. Módulo de Valoración</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="erp-tab" data-bs-toggle="tab" data-bs-target="#panelSpecial" type="button" role="tab">3. Mapeo Especial ERP</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="sql-tab" data-bs-toggle="tab" data-bs-target="#panelSql" type="button" role="tab">4. Scripting SQL Server</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content card p-4 rounded-bottom border-top-0 bg-white" id="modulosTabContent">
+                    <div class="tab-pane fade show active" id="panelStandard" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-slate-700 mb-0">Líneas de Presupuesto Extraídas por IA</h5>
+                            <span class="badge bg-secondary" id="table1LineCounter">Líneas: 0</span>
+                        </div>
+                        <table class="table table-striped align-middle border" id="tableStandard">
+                            <thead class="table-dark">
+                                <tr><th>Materiales y Manufactura</th><th class="text-center">Cantidad</th><th class="text-center">Alto (mm)</th><th class="text-center">Ancho (mm)</th><th>Observaciones</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="tab-pane fade" id="panelValuation" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-slate-700 mb-0">Valoración del Presupuesto / Costes</h5>
+                            <button class="btn btn-success btn-sm downloadExcelBtn"><i class="bi bi-file-earmark-excel"></i> Exportar Módulo a Excel</button>
+                        </div>
+                        <table class="table table-hover border" id="tableValuation">
+                            <thead class="bg-slate-100 border-bottom">
+                                <tr><th>Material</th><th class="text-center">Cantidad</th><th class="text-center">Alto (mm)</th><th class="text-center">Ancho (mm)</th><th class="text-center">Superficie (m²)</th><th class="text-center">Importe (€/m²)</th><th class="text-center">Total Línea</th><th>Observaciones</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="tab-pane fade" id="panelSpecial" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-slate-700 mb-0">Matriz Estructurada para Carga ERP (Sage/CRM)</h5>
+                            <button class="btn btn-success btn-sm downloadExcelBtn"><i class="bi bi-file-earmark-excel"></i> Descargar Excel Mapeado</button>
+                        </div>
+                        <table class="table table-bordered align-middle text-sm font-mono" id="tableSpecial">
+                            <thead class="table-light">
+                                <tr><th>Material</th><th>_Blank</th><th>Manufactura</th><th>Cantidad</th><th>Alto (mm)</th><th>Ancho (mm)</th><th>Observaciones</th><th>_Blank</th><th>Valor</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="tab-pane fade" id="panelSql" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-slate-700 mb-0">Generación de Transact-SQL Estructurado</h5>
+                            <button class="btn btn-outline-primary btn-sm" id="copySqlBtn"><i class="bi bi-clipboard"></i> Copiar Código T-SQL</button>
+                        </div>
+                        <pre class="bg-dark text-emerald-400 p-3 rounded font-mono text-xs shadow-inner" style="max-height: 400px; overflow-y: auto;"><code id="sqlOutputBlock">El script se compilará automáticamente tras procesar un pedido válido...</code></pre>
+                    </div>
+                </div>
+
+                <div class="card p-4 mt-4">
+                    <h5 class="card-title fw-bold text-slate-800"><i class="bi bi-chat-left-dots-fill text-blue-600"></i> Sandbox de Consultas / Instrucciones Adicionales</h5>
+                    <div class="input-group mb-3">
+                        <input type="text" id="studentReflection" class="form-control" placeholder="Ej: Genera un informe técnico de pérdidas por recortes o solicita cambios...">
+                        <button class="btn btn-dark fw-semibold" id="askAiBtn" type="button">Consultar al Asesor</button>
+                    </div>
+                    <div id="aiOutput" class="alert alert-light border p-3 font-mono text-sm d-none" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDNs Requeridos para parsing de archivos de forma local en el navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="app.js" defer></script>
+</body>
+</html>
