@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PresuLab v2.5 - Motor de Ingesta Asistido por Inteligencia Artificial (Gemini API Pipeline)
  * Versión Universal Multi-Entorno (Local, GitHub Pages y Servidores Web)
  * Con blindaje perimetral avanzado y control de errores estructurales en Ingesta y Sandbox.
@@ -187,7 +187,7 @@ async function handleFormSubmitAI(e) {
     systemPrompt += `2. Analiza las dimensiones (Cotas de corte Alto y Ancho):\n`;
     systemPrompt += `   - Si las dimensiones vienen implícitas en centímetros (por ejemplo, números menores de 500 como 82.5, 70, 90, 120), conviértelas SIEMPRE a milímetros (mm) multiplicando por 10.\n`;
     systemPrompt += `   - Si el cliente escribe explícitamente "mm" o el valor es superior a 500, mantén el número entero sin multiplicar.\n`;
-    systemPrompt += `   - El campo "alto" corresponds invariablemente a la primera cota del par y el "ancho" a la segunda.\n`;
+    systemPrompt += `   - El campo "alto" corresponde invariablemente a la primera cota del par y el "ancho" a la segunda.\n`;
     systemPrompt += `3. Aísla de forma quirúrgica la descripción del material limpio ("description"). Elimina las cantidades y las medidas del texto final para evitar duplicidades (Ej: "4/6/4", "4/6/4 Carglas", "4/12/3+3").\n`;
     systemPrompt += `4. Redacta notas técnicas concisas en el campo "observations" (Ej: Si detectas que incluye la palabra 'Carglas' indica "Especifica fabricante 'Carglas'"; si el material incluye un '+' o la palabra 'laminado', añade "Vidrio laminado en una de sus caras (formato: vidrio/cámara/vidrio)").\n\n`;
     systemPrompt += `Devuelve ÚNICAMENTE un array JSON válido con la estructura abajo indicada. No incluyas explicaciones, saludos ni bloques de código markdown tipo \`\`\`json. Solo el texto del array.\n\n`;
@@ -216,14 +216,12 @@ async function handleFormSubmitAI(e) {
         const data = await response.json();
         statusDiv.innerHTML = "";
 
-        // CAPTURA QUIRÚRGICA DE ERRORES: Intercepta fallos de clave, de cuota o bloqueos de HTTP Referrer en GitHub Pages
         if (data.error) {
             statusDiv.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Error de API Gemini (${data.error.code}): ${data.error.message}</span>`;
             console.error("Detalles devueltos por Google Cloud:", data.error);
             return;
         }
 
-        // VERIFICACIÓN ESTRUCTURAL SEGURA: Evita errores de tipo "Cannot read properties of undefined"
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
             let rawJsonText = data.candidates[0].content.parts[0].text.trim();
             rawJsonText = rawJsonText.replace(/^\s*```json|```\s*$/g, '');
@@ -310,15 +308,15 @@ function updateUserInterface() {
             <td class="text-xs text-muted">${item.observations}</td>
         </tr>`;
 
+        // Módulo 3: Mapeo Especial ERP reordenado según nuevo formato
         tbodySpec.innerHTML += `<tr>
             <td class="fw-semibold">${item.description}</td>
-            <td class="td-centered text-muted">_Blank</td>
-            <td class="td-centered fw-bold text-warning">P</td>
             <td class="td-centered fw-bold">${item.quantity}</td>
             <td class="td-centered">${item.alto}</td>
             <td class="td-centered">${item.ancho}</td>
             <td class="text-xs text-muted">${item.observations}</td>
             <td class="td-centered text-muted">_Blank</td>
+            <td class="td-centered fw-bold text-warning">P</td>
             <td class="td-centered fw-bold text-info">100</td>
         </tr>`;
     });
@@ -378,15 +376,15 @@ function exportDataToExcel() {
     }
     const wb = XLSX.utils.book_new();
 
+    // Mapeo Módulo 3 reordenado para la exportación en Excel
     const specialData = parsedItems.map(item => ({
         "Material": item.description,
-        "_Blank_1": "",
-        "Manufactura": "P",
         "Cantidad": item.quantity,
         "Alto (mm)": item.alto,
         "Ancho (mm)": item.ancho,
         "Observaciones": item.observations,
-        "_Blank_2": "",
+        "_Blank": "",
+        "Manufactura": "P",
         "Valor": 100
     }));
     const wsSpecial = XLSX.utils.json_to_sheet(specialData);
@@ -411,7 +409,7 @@ function exportDataToExcel() {
     XLSX.writeFile(wb, `PresuLab_Pipeline_Export_${currentClient.replace(/[^a-z0-9]/gi, '_')}.xls`);
 }
 
-// Sandbox del Asesor Técnico - Corregido y blindado para ejecución multi-entorno y multi-dominio
+// Sandbox del Asesor Técnico
 async function callGeminiSandbox() {
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const model = document.getElementById('modelInput').value.trim();
@@ -449,14 +447,12 @@ async function callGeminiSandbox() {
         
         const data = await response.json();
         
-        // INTERCEPCIÓN ESTRUCTURAL DE ERRORES: Muestra el error formateado de Google si la petición falla (ej: 403 o 400)
         if (data.error) {
             outputDiv.innerText = `Error de API Gemini (${data.error.code}): ${data.error.message}`;
             console.error("Fallo detectado en Sandbox:", data.error);
             return;
         }
         
-        // ACCESO BLINDADO: Comprobación estricta del árbol de propiedades antes de acceder al índice [0]
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
             outputDiv.innerText = data.candidates[0].content.parts[0].text;
         } else {
