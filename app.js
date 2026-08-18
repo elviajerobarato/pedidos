@@ -298,7 +298,6 @@ function updateUserInterface() {
             <td class="text-xs text-muted">${item.observations}</td>
         </tr>`;
 
-        // Módulo 3: Mapeo Especial ERP reordenado (Artículo, Unidades, Alto, Ancho, Tipo de Cálculo, Tipo_Introduccion, Perímetro, Observaciones / Tipo_Tarifa, Tipo_Línea)
         tbodySpec.innerHTML += `<tr>
             <td class="fw-semibold">${item.description}</td>
             <td class="td-centered fw-bold">${item.quantity}</td>
@@ -367,20 +366,61 @@ function exportDataToExcel() {
     }
     const wb = XLSX.utils.book_new();
 
-    // Exportación Módulo 3 adaptada a las nuevas cabeceras
-    const specialData = parsedItems.map(item => ({
-        "Artículo": item.description,
-        "Unidades": item.quantity,
-        "Alto (mm)": item.alto,
-        "Ancho (mm)": item.ancho,
-        "Tipo de Cálculo": "Superficie",
-        "Tipo_Introduccion": "Medidas",
-        "Perímetro": parseFloat((((item.alto + item.ancho) * 2) / 1000).toFixed(2)),
-        "Observaciones / Tipo_Tarifa": item.observations,
-        "Tipo_Línea": "Detalle"
-    }));
-    const wsSpecial = XLSX.utils.json_to_sheet(specialData);
+    // Orden estricto de las 9 columnas solicitadas para ERP
+    const erpHeaders = [
+        "Artículo",
+        "Unidades",
+        "Alto (mm)",
+        "Ancho (mm)",
+        "Tipo de Cálculo",
+        "Tipo_Introduccion",
+        "Perímetro",
+        "Observaciones / Tipo_Tarifa",
+        "Tipo_Línea"
+    ];
+
+    const specialData = parsedItems.map(item => {
+        const perimeterM = (((item.alto + item.ancho) * 2) / 1000).toFixed(2).replace('.', ',');
+        return {
+            "Artículo": item.description,
+            "Unidades": item.quantity,
+            "Alto (mm)": item.alto,
+            "Ancho (mm)": item.ancho,
+            "Tipo de Cálculo": "Superficie",
+            "Tipo_Introduccion": "Medidas",
+            "Perímetro": `${perimeterM} m`,
+            "Observaciones / Tipo_Tarifa": item.observations,
+            "Tipo_Línea": "Detalle"
+        };
+    });
+
+    const wsSpecial = XLSX.utils.json_to_sheet(specialData, { header: erpHeaders });
+
+    wsSpecial['!cols'] = [
+        { wch: 30 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 12 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 12 },
+        { wch: 45 },
+        { wch: 12 }
+    ];
+
     XLSX.utils.book_append_sheet(wb, wsSpecial, "Mapeo Especial ERP");
+
+    // Hoja 2: Valoración de Materiales
+    const valuationHeaders = [
+        "Material",
+        "Cantidad",
+        "Alto (mm)",
+        "Ancho (mm)",
+        "Superficie (m2)",
+        "Importe (EUR/m2)",
+        "Total Línea (EUR)",
+        "Observaciones"
+    ];
 
     const valuationData = parsedItems.map(item => {
         const m2 = (item.alto * item.ancho) / 1000000;
@@ -395,10 +435,17 @@ function exportDataToExcel() {
             "Observaciones": item.observations
         };
     });
-    const wsValuation = XLSX.utils.json_to_sheet(valuationData);
+
+    const wsValuation = XLSX.utils.json_to_sheet(valuationData, { header: valuationHeaders });
+    wsValuation['!cols'] = [
+        { wch: 30 }, { wch: 10 }, { wch: 12 }, { wch: 12 },
+        { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 40 }
+    ];
     XLSX.utils.book_append_sheet(wb, wsValuation, "Valoración de Materiales");
 
-    XLSX.writeFile(wb, `PresuLab_Pipeline_Export_${currentClient.replace(/[^a-z0-9]/gi, '_')}.xls`);
+    // Exportación nativa a formato .xls (BIFF8 Excel 97-2004) requerida por el ERP
+    const safeClientName = currentClient.replace(/[^a-z0-9]/gi, '_');
+    XLSX.writeFile(wb, `PresuLab_Pipeline_Export_${safeClientName}.xls`, { bookType: 'biff8' });
 }
 
 async function callGeminiSandbox() {
