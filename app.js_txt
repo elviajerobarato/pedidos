@@ -8,7 +8,6 @@ let parsedItems = [];
 let currentClient = "";
 let currentGeneralComment = "";
 
-// Configuración universal y resiliente del Worker de Mozilla PDF.js
 function setupPdfWorker() {
     const workerURL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     if (typeof pdfjsLib !== 'undefined') {
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApplication() {
-    // Vinculación de oyentes de eventos del DOM
     document.getElementById('importForm').addEventListener('submit', handleFormSubmitAI);
     document.getElementById('loadDemoDataBtn').addEventListener('click', loadDemoData);
     document.getElementById('toggleKeyBtn').addEventListener('click', toggleApiKeyVisibility);
@@ -35,7 +33,6 @@ function initApplication() {
     const dropZone = document.getElementById('dropZone');
     const filePicker = document.getElementById('filePicker');
 
-    // Inicialización del disparador del explorador de archivos nativo
     if (dropZone && filePicker) {
         dropZone.addEventListener('click', () => filePicker.click());
 
@@ -43,11 +40,9 @@ function initApplication() {
             if (e.target.files.length > 0) processFile(e.target.files[0]);
         });
 
-        // Prevención estricta de comportamientos predeterminados del navegador para evitar descargas automáticas
         window.addEventListener("dragover", (e) => e.preventDefault(), false);
         window.addEventListener("drop", (e) => e.preventDefault(), false);
 
-        // Controladores visuales de estados de arrastre (Drag & Drop)
         ['dragenter', 'dragover'].forEach(eventName => {
             dropZone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -64,7 +59,6 @@ function initApplication() {
             }, false);
         });
 
-        // Captura y lectura asíncrona del archivo soltado
         dropZone.addEventListener('drop', (e) => {
             const dt = e.dataTransfer;
             const files = dt.files;
@@ -79,10 +73,6 @@ function initApplication() {
     checkStoredApiKey();
 }
 
-/**
- * Lector perimetral de archivos integrado en el cliente (Evita peticiones de backend)
- * @param {File} file 
- */
 function processFile(file) {
     if (!file) return;
     
@@ -157,7 +147,6 @@ function loadDemoData() {
         "1 ud  4/12/3+3  120 x 72.5";
 }
 
-// Interceptor del formulario principal controlado por el Pipeline de Gemini
 async function handleFormSubmitAI(e) {
     e.preventDefault();
     
@@ -288,6 +277,7 @@ function updateUserInterface() {
 
         const unitSurfaceStr = itemSurfaceM2.toFixed(2).replace('.', ',');
         const linePriceStr = linePrice.toFixed(2).replace('.', ',');
+        const perimeterM = (((item.alto + item.ancho) * 2) / 1000).toFixed(2).replace('.', ',');
 
         tbodyStd.innerHTML += `<tr>
             <td class="fw-bold text-slate-800">${item.description}</td>
@@ -308,16 +298,17 @@ function updateUserInterface() {
             <td class="text-xs text-muted">${item.observations}</td>
         </tr>`;
 
-        // Módulo 3: Mapeo Especial ERP reordenado según nuevo formato
+        // Módulo 3: Mapeo Especial ERP reordenado (Artículo, Unidades, Alto, Ancho, Tipo de Cálculo, Tipo_Introduccion, Perímetro, Observaciones / Tipo_Tarifa, Tipo_Línea)
         tbodySpec.innerHTML += `<tr>
             <td class="fw-semibold">${item.description}</td>
             <td class="td-centered fw-bold">${item.quantity}</td>
             <td class="td-centered">${item.alto}</td>
             <td class="td-centered">${item.ancho}</td>
+            <td class="td-centered text-muted">Superficie</td>
+            <td class="td-centered text-muted">Medidas</td>
+            <td class="td-centered font-mono">${perimeterM} m</td>
             <td class="text-xs text-muted">${item.observations}</td>
-            <td class="td-centered text-muted">_Blank</td>
-            <td class="td-centered fw-bold text-warning">P</td>
-            <td class="td-centered fw-bold text-info">100</td>
+            <td class="td-centered fw-bold text-primary">Detalle</td>
         </tr>`;
     });
 
@@ -376,16 +367,17 @@ function exportDataToExcel() {
     }
     const wb = XLSX.utils.book_new();
 
-    // Mapeo Módulo 3 reordenado para la exportación en Excel
+    // Exportación Módulo 3 adaptada a las nuevas cabeceras
     const specialData = parsedItems.map(item => ({
-        "Material": item.description,
-        "Cantidad": item.quantity,
+        "Artículo": item.description,
+        "Unidades": item.quantity,
         "Alto (mm)": item.alto,
         "Ancho (mm)": item.ancho,
-        "Observaciones": item.observations,
-        "_Blank": "",
-        "Manufactura": "P",
-        "Valor": 100
+        "Tipo de Cálculo": "Superficie",
+        "Tipo_Introduccion": "Medidas",
+        "Perímetro": parseFloat((((item.alto + item.ancho) * 2) / 1000).toFixed(2)),
+        "Observaciones / Tipo_Tarifa": item.observations,
+        "Tipo_Línea": "Detalle"
     }));
     const wsSpecial = XLSX.utils.json_to_sheet(specialData);
     XLSX.utils.book_append_sheet(wb, wsSpecial, "Mapeo Especial ERP");
@@ -409,7 +401,6 @@ function exportDataToExcel() {
     XLSX.writeFile(wb, `PresuLab_Pipeline_Export_${currentClient.replace(/[^a-z0-9]/gi, '_')}.xls`);
 }
 
-// Sandbox del Asesor Técnico
 async function callGeminiSandbox() {
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const model = document.getElementById('modelInput').value.trim();

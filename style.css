@@ -71,7 +71,6 @@ pre code {
     line-height: 1.5;
 }
 
-/* Evita que los iconos/textos internos interfieran con los eventos dragover/dragleave */
 #dropZone * {
     pointer-events: none;
 }
