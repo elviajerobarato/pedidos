@@ -380,15 +380,14 @@ function exportDataToExcel() {
     ];
 
     const specialData = parsedItems.map(item => {
-        const perimeterM = (((item.alto + item.ancho) * 2) / 1000).toFixed(2).replace('.', ',');
         return {
             "Artículo": item.description,
             "Unidades": item.quantity,
             "Alto (mm)": item.alto,
             "Ancho (mm)": item.ancho,
-            "Tipo de Cálculo": "Superficie",
-            "Tipo_Introduccion": "Medidas",
-            "Perímetro": `${perimeterM} m`,
+            "Tipo de Cálculo": "",
+            "Tipo_Introduccion": "",
+            "Perímetro": "",
             "Observaciones / Tipo_Tarifa": item.observations,
             "Tipo_Línea": "Detalle"
         };
